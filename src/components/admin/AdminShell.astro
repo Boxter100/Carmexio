@@ -1,0 +1,97 @@
+---
+import { Car, Wallet, Wrench, TrendUp, Handshake } from '@phosphor-icons/react';
+import type { AdminUser } from '../../lib/types';
+import LogoutButton from './LogoutButton.tsx';
+
+interface ModuleItem {
+	href?: string;
+	label: string;
+	icon: typeof Car;
+	available: boolean;
+}
+
+const modules: ModuleItem[] = [
+	{ href: '/admin/vehiculos', label: 'Vehículos', icon: Car, available: true },
+	{ href: '/admin/financiamiento', label: 'Financiamiento', icon: Wallet, available: false },
+	{ href: '/admin/membresias', label: 'Membresías', icon: Wrench, available: false },
+	{ href: '/admin/inversiones', label: 'Inversiones', icon: TrendUp, available: false },
+	{ href: '/admin/comisiones', label: 'Comisiones', icon: Handshake, available: false },
+];
+
+interface Props {
+	user: AdminUser;
+	pathname: string;
+	title: string;
+	backHref?: string;
+}
+
+const { user, pathname, title, backHref } = Astro.props;
+const titleMatch = (href?: string) => Boolean(href && pathname.startsWith(href));
+---
+
+<section class="wrap py-8 lg:py-10">
+	<div class="grid gap-8 lg:grid-cols-[250px_1fr]">
+		<aside class="lg:sticky lg:top-24 lg:self-start">
+			<div class="rounded-2xl border border-line bg-surface p-4">
+				<div class="flex items-center gap-3 border-b border-line px-1 pb-4">
+					<span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-sm font-bold text-accent-contrast">
+						{(user.name ?? user.email).charAt(0).toUpperCase()}
+					</span>
+					<div class="min-w-0">
+						<p class="truncate text-sm font-semibold text-ink">{user.name ?? user.email}</p>
+						<p class="truncate text-xs text-muted">{user.email}</p>
+					</div>
+				</div>
+				<nav class="mt-3 flex flex-nowrap gap-1 overflow-x-auto lg:flex-col lg:overflow-visible" aria-label="Módulos administrativos">
+					{modules.map((m) => {
+						const active = titleMatch(m.href);
+						return m.available && m.href ? (
+							<a
+								href={m.href}
+								class={`flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+									active
+										? 'bg-accent-tint text-accent'
+										: 'text-soft hover:bg-surface-2 hover:text-ink'
+								}`}
+							>
+								<m.icon size={17} weight="regular" />
+								{m.label}
+							</a>
+						) : (
+							<span
+								class="flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-muted"
+								title="Módulo próximo"
+							>
+								<m.icon size={17} weight="regular" />
+								{m.label}
+								<span class="rounded bg-surface-2 px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide">
+									Pronto
+								</span>
+							</span>
+						);
+					})}
+				</nav>
+				<div class="mt-3 border-t border-line pt-3">
+					<LogoutButton client:load />
+				</div>
+			</div>
+		</aside>
+
+		<div class="min-w-0">
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<div>
+					{backHref && (
+						<a href={backHref} class="mb-1.5 inline-flex items-center gap-1 text-xs font-medium text-muted transition-colors hover:text-accent">
+							← Volver
+						</a>
+					)}
+					<h1 class="font-display text-2xl font-semibold tracking-tight text-ink lg:text-3xl">{title}</h1>
+				</div>
+				<slot name="actions" />
+			</div>
+			<div class="mt-6">
+				<slot />
+			</div>
+		</div>
+	</div>
+</section>

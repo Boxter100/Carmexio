@@ -1,0 +1,112 @@
+---
+import { NAV_LINKS, SITE } from '../lib/site';
+
+interface Props {
+	pathname: string;
+}
+
+const { pathname } = Astro.props;
+const year = new Date().getFullYear();
+
+const serviceLinks = [
+	{ href: '/garage', label: 'Inventario' },
+	{ href: '/financiamiento', label: 'Financiamiento' },
+	{ href: '/membresias', label: 'Membresías' },
+	{ href: '/inversiones', label: 'Inversiones' },
+	{ href: '/comisiones', label: 'Comisiones' },
+];
+---
+
+<footer class="border-t border-line bg-surface">
+	<div class="wrap py-14">
+		<div class="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+			<div>
+				<a href="/" class="flex items-center gap-2.5" aria-label="Carmexio · Inicio">
+					<span class="grid h-9 w-9 place-items-center rounded-xl bg-surface-2 ring-1 ring-line-strong">
+						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<circle cx="12" cy="12" r="8.2" stroke="var(--accent)" stroke-width="1.7" />
+							<circle cx="12" cy="12" r="1.5" fill="var(--accent)" />
+							<path
+								d="M12 3.8v3.1M8.9 5.9l1.6 2.7M15.1 5.9l-1.6 2.7M12 20.2v-3.1M15.1 18.1l-1.6-2.7M8.9 18.1l1.6-2.7"
+								stroke="var(--accent)"
+								stroke-width="1.7"
+								stroke-linecap="round"
+							/>
+						</svg>
+					</span>
+					<span class="font-display text-lg font-semibold tracking-tight text-ink">{SITE.name}</span>
+				</a>
+				<p class="mt-4 max-w-xs text-sm leading-relaxed text-muted">
+					Autos seminuevos y nuevos con precio claro, financiamiento propio y un servicio
+					pensado para que conduzcas sin complicaciones.
+				</p>
+			</div>
+
+			<div>
+				<h3 class="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-muted">
+					Navegación
+				</h3>
+				<ul class="mt-4 space-y-2.5">
+					{NAV_LINKS.map((link) => (
+						<li>
+							<a
+								href={link.href}
+								class:list={[
+									'text-sm transition-colors hover:text-accent',
+									pathname === link.href ? 'font-medium text-accent' : 'text-soft',
+								]}
+							>
+								{link.label}
+							</a>
+						</li>
+					))}
+				</ul>
+			</div>
+
+			<div>
+				<h3 class="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-muted">
+					Servicios
+				</h3>
+				<ul class="mt-4 space-y-2.5">
+					{serviceLinks.map((link) => (
+						<li>
+							<a href={link.href} class="text-sm text-soft transition-colors hover:text-accent">
+								{link.label}
+							</a>
+						</li>
+					))}
+				</ul>
+			</div>
+
+			<div>
+				<h3 class="text-[0.6875rem] font-semibold uppercase tracking-[0.16em] text-muted">
+					Contacto
+				</h3>
+				<ul class="mt-4 space-y-2.5 text-sm text-soft">
+					<li>
+						<a href={`mailto:${SITE.email}`} class="transition-colors hover:text-accent">
+							{SITE.email}
+						</a>
+					</li>
+					<li>
+						<a href={`tel:${SITE.phone.replace(/[^0-9]/g, '')}`} class="transition-colors hover:text-accent">
+							{SITE.phone}
+						</a>
+					</li>
+					<li class="text-muted">Ciudad de México / Preventa</li>
+				</ul>
+				<a href="/admin" class="mt-5 inline-flex items-center gap-1.5 text-xs text-muted transition-colors hover:text-soft" rel="nofollow">
+					Acceso administrador
+				</a>
+			</div>
+		</div>
+
+		<div class="mt-12 flex flex-col gap-3 border-t border-line pt-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between">
+			<p>© {year} {SITE.name}. Todos los derechos reservados.</p>
+			<div class="flex items-center gap-4">
+				<a href="/" class="transition-colors hover:text-soft">Aviso de privacidad</a>
+				<a href="/" class="transition-colors hover:text-soft">Términos y condiciones</a>
+			</div>
+		</div>
+	</div>
+</footer>

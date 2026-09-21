@@ -1,0 +1,14 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import GarageExplorer from '../../components/garage/GarageExplorer';
+import { listVehicles } from '../../lib/db';
+
+const initial = await listVehicles({ sort: 'recent', limit: 24 });
+---
+
+<Layout
+	title="Garage"
+	description="Catálogo de vehículos seleccionados de Carmexio con precio claro, historial verificado y disponibilidad en tiempo real."
+>
+	<GarageExplorer client:load initial={initial} />
+</Layout>

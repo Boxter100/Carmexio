@@ -1,0 +1,23 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AdminLogin from '../../components/admin/AdminLogin';
+import { guardGuest } from '../../lib/server/guard';
+import { isSupabaseConfigured } from '../../lib/env';
+
+const redirect = await guardGuest(Astro);
+if (redirect) return redirect;
+---
+
+<Layout
+	title="Acceso"
+	description="Acceso al panel de administración de Carmexio."
+>
+	<section class="relative flex min-h-[calc(100dvh-5rem)] items-center justify-center overflow-hidden py-16">
+		<div
+			class="pointer-events-none absolute inset-0 -z-10"
+			aria-hidden="true"
+			style="background: radial-gradient(55% 50% at 50% 0%, var(--accent-tint), transparent 70%)"
+		></div>
+		<AdminLogin client:load developmentHint={!isSupabaseConfigured()} />
+	</section>
+</Layout>

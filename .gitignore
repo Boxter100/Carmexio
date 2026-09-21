@@ -24,3 +24,9 @@ pnpm-debug.log*
 .idea/
 # datos
 datos/
+
+# data de desarrollo local (fallback sin Supabase)
+.data/
+
+# supabase
+supabase/

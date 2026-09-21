@@ -1,0 +1,6 @@
+---
+import { guardAdmin } from '../../lib/server/guard';
+const guard = await guardAdmin(Astro);
+if (guard instanceof Response) return guard;
+return Astro.redirect('/admin/vehiculos');
+---

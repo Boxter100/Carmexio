@@ -1,11 +1,356 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
+import VehicleCard from '../components/garage/VehicleCard';
+import { listVehicles } from '../lib/db';
+import { displayPrice } from '../lib/format';
+import {
+	ArrowRight,
+	ArrowsClockwise,
+	Car,
+	CashRegister,
+	ChatsCircle,
+	GearSix,
+	Handshake,
+	RocketLaunch,
+	ShieldCheck,
+	Star,
+	TrendUp,
+	Wallet,
+	Wrench,
+} from '@phosphor-icons/react';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const catalog = await listVehicles({ sort: 'recent', limit: 24 });
+const featured = catalog.vehicles.filter((v) => v.available && v.images.length > 0).slice(0, 4);
+const hero = catalog.vehicles.find((v) => v.images.length > 0) ?? null;
+const heroPrice = hero ? displayPrice(hero) : null;
+const heroImage = hero ? (hero.images[0]?.display_url ?? hero.images[0]?.url) : null;
+const heroAlt = hero?.images[0]?.alt ?? (hero ? `${hero.brand} ${hero.model ?? ''}` : '');
+
+const stats = [
+	{ value: '170', label: 'puntos de revisión', icon: ShieldCheck },
+	{ value: '100%', label: 'precio transparente', icon: CashRegister },
+	{ value: '20%', label: 'enganche mínimo', icon: Wallet },
+	{ value: '60', label: 'meses de plazo', icon: GearSix },
+];
+
+const services = [
+	{
+		href: '/membresias',
+		icon: Wrench,
+		title: 'Membresías',
+		description: 'Servicio anual, mantenimientos preferentes y atención prioritaria para tu unidad.',
+		cta: 'Ver membresías',
+	},
+	{
+		href: '/inversiones',
+		icon: TrendUp,
+		title: 'Inversiones',
+		description: 'Oportunidades ligadas al inventario, con rendimientos claros y seguimiento transparente.',
+		cta: 'Explorar',
+	},
+];
+
+const steps = [
+	{
+		icon: Car,
+		title: 'Elige tu unidad',
+		text: 'Navega el Garage y filtra por marca, precio y disponibilidad. Cada unidad muestra su historial.',
+	},
+	{
+		icon: Wallet,
+		title: 'Aparta y financia',
+		text: 'Aparta con un enganche mínimo o paga contra entrega, con un contrato claro desde el inicio.',
+	},
+	{
+		icon: RocketLaunch,
+		title: 'Recíbela lista',
+		text: 'Detallado, factura y trámites incluidos. La recibes lista para emplacar y circular.',
+	},
+];
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+	title="Autos con precio claro"
+	description="Carmexio: vehículos seleccionados, precios transparentes y financiamiento propio. Explora el Garage y conduce sin complicaciones."
+>
+	{/* Hero */}
+	<section class="relative overflow-hidden">
+		<div
+			class="pointer-events-none absolute inset-0 -z-10"
+			aria-hidden="true"
+			style="background: radial-gradient(55% 55% at 12% 8%, var(--accent-tint), transparent 70%), radial-gradient(40% 45% at 90% 90%, var(--accent-tint), transparent 78%)"
+		></div>
+		<div class="wrap grid items-center gap-12 py-16 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:py-24">
+			<div class="max-w-xl">
+				<p class="eyebrow">¿Buscas un auto seminuevo?</p>
+				<h1 class="mt-4 font-display text-4xl font-semibold leading-[1.06] tracking-tight text-ink md:text-6xl">
+					Autos con precio claro y{' '}
+					<span class="text-accent">entrega lista</span> para circular
+				</h1>
+				<p class="mt-5 max-w-md text-base leading-relaxed text-soft md:text-lg">
+					Cada unidad de Carmexio pasa por una revisión de 170 puntos, se documenta y se
+					entrega detallada. Tú solo eliges.
+				</p>
+				<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+					<a href="/garage" class="btn btn-primary btn-lg">
+						Explorar el Garage
+						<ArrowRight size={17} weight="bold" />
+					</a>
+					<a href="/financiamiento" class="btn btn-outline btn-lg">
+						<Wallet size={17} weight="regular" />
+						Financiamiento
+					</a>
+				</div>
+				<dl class="mt-10 grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
+					{stats.map((s) => (
+						<div>
+							<dt class="flex items-center gap-1.5 text-xs font-medium text-muted">
+								<s.icon size={13} weight="regular" />
+								{s.label}
+							</dt>
+							<dd class="mt-1 font-display text-2xl font-semibold tracking-tight text-ink">{s.value}</dd>
+						</div>
+					))}
+				</dl>
+			</div>
+
+			{hero && heroImage && (
+				<div class="relative mx-auto w-full max-w-xl lg:max-w-none">
+					<div
+						class="absolute -inset-3 -z-10 rounded-[2rem] bg-gradient-to-br from-accent/25 via-transparent to-transparent blur-2xl"
+						aria-hidden="true"
+					></div>
+					<a
+						href={`/garage/${hero.slug}`}
+						class="group relative block overflow-hidden rounded-[1.75rem] border border-line bg-surface shadow-[0_30px_80px_-40px_rgba(0,0,0,0.5)]"
+					>
+						<img
+							src={heroImage}
+							alt={heroAlt}
+							fetchpriority="high"
+							decoding="async"
+							class="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03]"
+						/>
+						<div class="absolute right-4 top-4 max-w-[88%] truncate rounded-xl bg-black/60 px-3.5 py-2 text-[0.8125rem] font-medium text-white backdrop-blur">
+							{hero.title}
+						</div>
+						{heroPrice && (
+							<div class="absolute bottom-4 left-4 rounded-xl bg-surface/95 px-4 py-3 shadow-lg backdrop-blur">
+								<p class="text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-muted">Precio contra entrega</p>
+								<p class="mt-0.5 font-display text-xl font-semibold tracking-tight text-ink">
+									{heroPrice.main}
+								</p>
+							</div>
+						)}
+						<span
+							class="absolute inset-0 grid place-items-center bg-background/25 opacity-0 backdrop-blur-[2px] transition-opacity duration-300 group-hover:opacity-100"
+							aria-hidden="true"
+						>
+							<span class="btn btn-primary">Ver detalle</span>
+						</span>
+					</a>
+				</div>
+			)}
+		</div>
+	</section>
+
+	{/* Trust strip */}
+	<section class="border-y border-line bg-surface">
+		<div class="wrap flex flex-col items-center justify-between gap-3 py-5 text-sm font-medium text-soft sm:flex-row">
+			<div class="flex items-center gap-2.5">
+				<Star size={15} weight="fill" className="text-accent" />
+				Unidades seleccionadas a mano · Actualizadas esta semana
+			</div>
+			<div class="flex items-center gap-2.5">
+				<ArrowsClockwise size={15} weight="regular" className="text-accent" />
+				{catalog.total} vehículos listos en el Garage
+			</div>
+		</div>
+	</section>
+
+	{/* Featureds */}
+	{
+		featured.length > 0 && (
+			<section class="wrap py-20 lg:py-24">
+				<div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+					<div>
+						<p class="eyebrow">Selección del Garage</p>
+						<h2 class="mt-2 font-display text-3xl font-semibold tracking-tight text-ink md:text-4xl">
+							Unidades destacadas
+						</h2>
+					</div>
+					<a href="/garage" class="btn btn-outline">
+						Ver todo el inventario
+						<ArrowRight size={16} weight="bold" />
+					</a>
+				</div>
+				<ul class="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+					{featured.slice(0, 4).map((v) => (
+						<li>
+							<VehicleCard vehicle={v} />
+						</li>
+					))}
+				</ul>
+			</section>
+		)
+	}
+
+	{/* Services */}
+	<section class="wrap pb-20 lg:pb-24">
+		<div class="mx-auto max-w-2xl text-center">
+			<p class="eyebrow">Más de tu próximo auto</p>
+			<h2 class="mt-2 font-display text-3xl font-semibold tracking-tight text-ink md:text-4xl">
+				Todo el acompañamiento, en un solo lugar
+			</h2>
+			<p class="mt-3 text-[0.9375rem] text-soft">
+				Del financiamiento a la entrega, Carmexio acompaña cada paso de tu compra.
+			</p>
+		</div>
+
+		<div class="mt-12 grid gap-5 lg:grid-cols-3">
+			<a
+				href="/financiamiento"
+				class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-surface p-7 transition-[border-color,transform] duration-300 ease-out hover:-translate-y-1 hover:border-line-strong lg:col-span-2 lg:row-span-2"
+			>
+				<div
+					class="pointer-events-none absolute inset-0 opacity-80"
+					aria-hidden="true"
+					style="background: radial-gradient(70% 90% at 85% 100%, var(--accent-tint), transparent 70%)"
+				></div>
+				<div class="flex items-center justify-between">
+					<span class="grid h-12 w-12 place-items-center rounded-2xl bg-accent-tint text-accent">
+						<Wallet size={24} weight="regular" />
+					</span>
+					<span class="chip">Próximamente</span>
+				</div>
+				<div class="mt-20 lg:mt-28">
+					<h3 class="font-display text-2xl font-semibold tracking-tight text-ink">Financiamiento</h3>
+					<p class="mt-2 max-w-md text-sm leading-relaxed text-soft">
+						Crédito propio con enganches desde 20% y hasta 60 mensualidades. Aparta tu unidad
+						desde el principio y paga suave mientras conduces.
+					</p>
+					<span class="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
+						Conocer esquemas
+						<ArrowRight size={15} weight="bold" className="transition-transform duration-200 group-hover:translate-x-1" />
+					</span>
+				</div>
+			</a>
+
+			{services.map((s) => (
+				<a
+
+					href={s.href}
+					class="group flex flex-col justify-between rounded-2xl border border-line bg-surface p-6 transition-[border-color,transform] duration-300 ease-out hover:-translate-y-1 hover:border-line-strong"
+				>
+					<div class="flex items-center justify-between">
+						<span class="grid h-11 w-11 place-items-center rounded-xl bg-surface-2 text-accent transition-colors duration-200 group-hover:bg-accent-tint">
+							<s.icon size={21} weight="regular" />
+						</span>
+						<span class="chip">Próximamente</span>
+					</div>
+					<div class="mt-8">
+						<h3 class="font-display text-lg font-semibold tracking-tight text-ink">{s.title}</h3>
+						<p class="mt-1.5 text-sm leading-relaxed text-soft">{s.description}</p>
+						<span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-accent">
+							{s.cta}
+							<ArrowRight size={14} weight="bold" className="transition-transform duration-200 group-hover:translate-x-1" />
+						</span>
+					</div>
+				</a>
+			))}
+
+			<a
+				href="/comisiones"
+				class="group flex items-center justify-between gap-6 rounded-2xl border border-line bg-surface p-6 transition-[border-color,transform] duration-300 ease-out hover:-translate-y-1 hover:border-line-strong lg:col-span-2"
+			>
+				<div class="flex items-center gap-4">
+					<span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-2 text-accent transition-colors duration-200 group-hover:bg-accent-tint">
+						<Handshake size={23} weight="regular" />
+					</span>
+					<div>
+						<h3 class="font-display text-base font-semibold tracking-tight text-ink">Comisiones por referidos</h3>
+						<p class="mt-0.5 text-sm text-soft">Comparte el Garage y gana por cada unidad entregada.</p>
+					</div>
+				</div>
+				<ArrowRight size={18} weight="bold" className="shrink-0 text-muted transition-transform duration-200 group-hover:translate-x-1 group-hover:text-accent" />
+			</a>
+
+			<a
+				href="/nosotros"
+				class="group flex items-center justify-between gap-6 rounded-2xl border border-line bg-surface p-6 transition-[border-color,transform] duration-300 ease-out hover:-translate-y-1 hover:border-line-strong"
+			>
+				<div class="flex items-center gap-4">
+					<span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-surface-2 text-accent transition-colors duration-200 group-hover:bg-accent-tint">
+						<ChatsCircle size={23} weight="regular" />
+					</span>
+					<div>
+						<h3 class="font-display text-base font-semibold tracking-tight text-ink">Quiénes somos</h3>
+						<p class="mt-0.5 text-sm text-soft">Conoce la forma Carmexio de comprar un auto.</p>
+					</div>
+				</div>
+				<ArrowRight size={18} weight="bold" className="shrink-0 text-muted transition-transform duration-200 group-hover:translate-x-1 group-hover:text-accent" />
+			</a>
+		</div>
+	</section>
+
+	{/* Steps */}
+	<section class="border-t border-line bg-surface">
+		<div class="wrap py-16 lg:py-20">
+			<div class="mx-auto max-w-2xl text-center">
+				<p class="eyebrow">Compra sin fricción</p>
+				<h2 class="mt-2 font-display text-3xl font-semibold tracking-tight text-ink md:text-4xl">
+					De la búsqueda a la entrega, en tres pasos
+				</h2>
+			</div>
+			<ol class="mt-12 grid gap-8 md:grid-cols-3 md:gap-6">
+				{steps.map((step, i) => (
+					<li class="relative">
+						<div class="flex items-center gap-4">
+							<span class="relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-line bg-background text-accent">
+								<step.icon size={22} weight="regular" />
+								<span class="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-accent font-mono text-[0.625rem] font-bold text-accent-contrast">
+									{i + 1}
+								</span>
+							</span>
+							<svg
+								class="hidden h-px w-full text-line md:block {i === steps.length - 1 ? 'opacity-0' : ''}"
+								viewBox="0 0 100 1"
+								preserveAspectRatio="none"
+								aria-hidden="true"
+							>
+								<line x1="0" y1="0.5" x2="100" y2="0.5" stroke="currentColor" stroke-dasharray="4 5" />
+							</svg>
+						</div>
+						<h3 class="mt-5 font-display text-lg font-semibold tracking-tight text-ink">{step.title}</h3>
+						<p class="mt-2 max-w-xs text-sm leading-relaxed text-soft">{step.text}</p>
+					</li>
+				))}
+			</ol>
+		</div>
+	</section>
+
+	{/* Final CTA */}
+	<section class="wrap py-20 lg:py-24">
+		<div class="relative overflow-hidden rounded-3xl border border-line bg-surface px-6 py-16 text-center sm:px-12">
+			<div
+				class="pointer-events-none absolute inset-0"
+				aria-hidden="true"
+				style="background: radial-gradient(60% 80% at 50% 0%, var(--accent-tint), transparent 70%)"
+			></div>
+			<div class="relative mx-auto max-w-xl">
+				<h2 class="font-display text-3xl font-semibold tracking-tight text-ink md:text-4xl">
+					Tu próximo auto ya está en el Garage
+				</h2>
+				<p class="mt-3 text-[0.9375rem] text-soft">
+					Marca, modelo, precio y disponibilidad. Sin sorpresas, con todo a la vista.
+				</p>
+				<div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+					<a href="/garage" class="btn btn-primary btn-lg">
+						Explorar el Garage
+						<ArrowRight size={17} weight="bold" />
+					</a>
+				</div>
+			</div>
+		</div>
+	</section>
 </Layout>

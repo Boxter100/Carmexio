@@ -1,23 +1,59 @@
+---
+import '../styles/global.css';
+import '../styles/components.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE } from '../lib/site';
+import manropeLatin from '@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url';
+import soraLatin from '@fontsource-variable/sora/files/sora-latin-wght-normal.woff2?url';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { title, description } = Astro.props;
+
+const fullTitle = title ? `${title} · ${SITE.name}` : `${SITE.name} · ${SITE.tagline}`;
+const metaDescription = description ?? 'Vehiculos seleccionados con precio claro, financiamiento propio y servicio anual en Carmexio.';
+---
+
 <!doctype html>
-<html lang="en">
+<html lang="es">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="preload" href={manropeLatin} as="font" type="font/woff2" crossorigin />
+		<link rel="preload" href={soraLatin} as="font" type="font/woff2" crossorigin />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<meta name="description" content={metaDescription} />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content={SITE.name} />
+		<meta property="og:title" content={fullTitle} />
+		<meta property="og:description" content={metaDescription} />
+		<meta name="theme-color" content="#0b0c0e" />
+		<title>{fullTitle}</title>
+		<script is:inline>
+			(function () {
+				var stored = null;
+				try {
+					stored = localStorage.getItem('carmexio-theme');
+				} catch (e) {}
+				var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+				document.documentElement.classList.toggle('dark', dark);
+			})();
+		</script>
 	</head>
-	<body>
-		<slot />
+	<body class="min-h-dvh">
+		<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-3 focus:left-3 focus:rounded-lg focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-contrast">
+			Saltar al contenido
+		</a>
+		<Header pathname={Astro.url.pathname} />
+		<main id="main">
+			<slot />
+		</main>
+		<Footer pathname={Astro.url.pathname} />
 	</body>
 </html>
-
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>

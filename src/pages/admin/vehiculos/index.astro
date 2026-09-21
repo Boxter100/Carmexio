@@ -1,0 +1,26 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminShell from '../../../components/admin/AdminShell.astro';
+import VehiclesAdmin from '../../../components/admin/VehiclesAdmin';
+import { guardAdmin } from '../../../lib/server/guard';
+import { Plus } from '@phosphor-icons/react';
+
+const guard = await guardAdmin(Astro);
+if (guard instanceof Response) return guard;
+const { user } = guard;
+---
+
+<Layout
+	title="Vehículos — Panel"
+	description="Administración de vehículos de Carmexio."
+>
+	<AdminShell user={user} pathname={Astro.url.pathname} title="Vehículos">
+		<Fragment slot="actions">
+			<a href="/admin/vehiculos/nuevo" class="btn btn-primary btn-sm">
+				<Plus size={15} weight="bold" />
+				Nuevo vehículo
+			</a>
+		</Fragment>
+		<VehiclesAdmin client:load />
+	</AdminShell>
+</Layout>

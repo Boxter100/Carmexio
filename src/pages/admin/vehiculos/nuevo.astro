@@ -1,0 +1,19 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import AdminShell from '../../../components/admin/AdminShell.astro';
+import VehicleForm from '../../../components/admin/VehicleForm';
+import { guardAdmin } from '../../../lib/server/guard';
+
+const guard = await guardAdmin(Astro);
+if (guard instanceof Response) return guard;
+const { user } = guard;
+---
+
+<Layout
+	title="Nuevo vehículo — Panel"
+	description="Crear un vehículo en Carmexio."
+>
+	<AdminShell user={user} pathname={Astro.url.pathname} title="Nuevo vehículo" backHref="/admin/vehiculos">
+		<VehicleForm mode="create" client:load />
+	</AdminShell>
+</Layout>

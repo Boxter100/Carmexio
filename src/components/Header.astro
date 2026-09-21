@@ -1,0 +1,69 @@
+---
+import { NAV_LINKS } from '../lib/site';
+import ThemeToggle from './ThemeToggle.tsx';
+import AccountButton from './AccountButton.tsx';
+import MobileNav from './MobileNav.tsx';
+
+interface Props {
+	pathname: string;
+}
+
+const { pathname } = Astro.props;
+
+function isActive(href: string): boolean {
+	if (href === '/') return pathname === '/';
+	return pathname.startsWith(href);
+}
+---
+
+<header class="sticky top-0 z-40 border-b border-line bg-background/80 backdrop-blur-xl">
+	<div class="wrap flex h-16 items-center justify-between gap-4 lg:h-[4.25rem]">
+		<a
+			href="/"
+			class="flex shrink-0 items-center gap-2.5 rounded-lg"
+			aria-label="Carmexio · Inicio"
+		>
+			<span class="grid h-9 w-9 place-items-center rounded-xl bg-surface shadow-sm ring-1 ring-line-strong">
+				<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<circle cx="12" cy="12" r="8.2" stroke="var(--accent)" stroke-width="1.7" />
+					<circle cx="12" cy="12" r="1.5" fill="var(--accent)" />
+					<path
+						d="M12 3.8v3.1M8.9 5.9l1.6 2.7M15.1 5.9l-1.6 2.7M12 20.2v-3.1M15.1 18.1l-1.6-2.7M8.9 18.1l1.6-2.7"
+						stroke="var(--accent)"
+						stroke-width="1.7"
+						stroke-linecap="round"
+					/>
+				</svg>
+			</span>
+			<span class="font-display text-lg font-semibold tracking-tight text-ink">
+				Carmexio
+			</span>
+		</a>
+
+		<nav class="hidden items-center gap-0.5 xl:flex" aria-label="Principal">
+			{
+				NAV_LINKS.map((link) => (
+					<a
+						href={link.href}
+						class:list={[
+							'rounded-lg px-3 py-2 text-[0.8125rem] font-medium transition-colors',
+							isActive(link.href)
+								? 'bg-surface text-ink ring-1 ring-line'
+								: 'text-soft hover:bg-surface-2 hover:text-ink',
+						]}
+					>
+						{link.label}
+					</a>
+				))
+			}
+		</nav>
+
+		<div class="flex items-center gap-1.5">
+			<ThemeToggle client:load />
+			<AccountButton client:load />
+			<div class="xl:hidden">
+				<MobileNav client:load pathname={pathname} />
+			</div>
+		</div>
+	</div>
+</header>
