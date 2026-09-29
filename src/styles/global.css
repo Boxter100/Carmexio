@@ -164,6 +164,32 @@
 		}
 	}
 
+	.scrollbar-panel {
+		scrollbar-width: thin;
+		scrollbar-color: var(--border-strong) transparent;
+	}
+
+	.scrollbar-panel:hover {
+		scrollbar-color: var(--muted) transparent;
+	}
+
+	.scrollbar-panel::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	.scrollbar-panel::-webkit-scrollbar-track {
+		background: transparent;
+	}
+
+	.scrollbar-panel::-webkit-scrollbar-thumb {
+		background-color: var(--border-strong);
+		border-radius: 9999px;
+	}
+
+	.scrollbar-panel:hover::-webkit-scrollbar-thumb {
+		background-color: var(--muted);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.skeleton::after {
 			animation: none;

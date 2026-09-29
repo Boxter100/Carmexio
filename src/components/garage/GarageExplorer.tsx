@@ -251,7 +251,7 @@ export default function GarageExplorer({
 	);
 
 	const filterPanel = (
-		<div className="flex h-full flex-col">
+		<div className="flex h-full min-h-0 flex-col">
 			<div className="flex items-center justify-between border-b border-line px-5 py-4">
 				<span className="font-display text-sm font-semibold text-ink">Filtros</span>
 				<button
@@ -263,7 +263,7 @@ export default function GarageExplorer({
 					<X size={18} weight="regular" />
 				</button>
 			</div>
-			<div className="flex-1 overflow-y-auto px-5">
+			<div className="scrollbar-panel flex-1 overflow-y-auto overscroll-contain px-5">
 				<fieldset className="border-b border-line py-4">
 					<legend><span className="text-[0.8125rem] font-semibold text-ink">Disponibilidad</span></legend>
 					<div className="mt-2">
@@ -386,7 +386,7 @@ export default function GarageExplorer({
 
 			<div className="mt-10 flex flex-col gap-8 lg:flex-row">
 				<aside className="hidden w-64 shrink-0 lg:block">
-					<div className="sticky top-24 rounded-2xl border border-line bg-surface">
+					<div className="sticky top-24 flex max-h-[calc(100dvh-7.5rem)] flex-col overflow-hidden rounded-2xl border border-line bg-surface">
 						{filterPanel}
 					</div>
 				</aside>
