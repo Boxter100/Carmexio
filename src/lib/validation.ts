@@ -77,11 +77,14 @@ export function toVehicleInput(data: VehicleInputPayload): VehicleInput {
 		history: data.history ?? null,
 		features: data.features,
 		description: data.description,
-		images: data.images.map((img) => ({
+		// `order` se regenera contiguo desde el índice del array: el orden de envío es
+		// la fuente de verdad y así ambos backends escriben 0..n-1 sin depender de la base
+		// con la que vinieran los datos.
+		images: data.images.map((img, i) => ({
 			url: img.url,
 			display_url: img.display_url ?? null,
 			alt: img.alt ?? null,
-			order: img.order ?? 0,
+			order: i,
 		})),
 		source: data.source,
 		available: data.available,

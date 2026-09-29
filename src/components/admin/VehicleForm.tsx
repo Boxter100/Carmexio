@@ -1,14 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-	ArrowDown,
-	ArrowUp,
-	CheckCircle,
-	ImageSquare,
-	Plus,
-	FloppyDisk,
-	Trash,
-	WarningCircle,
-} from '@phosphor-icons/react';
+import { CheckCircle, FloppyDisk, WarningCircle } from '@phosphor-icons/react';
+import ImageUploader, { type ImageDraft } from './ImageUploader';
 import type { Vehicle } from '../../lib/types';
 import { slugify } from '../../lib/format';
 
@@ -36,7 +28,8 @@ const blank = () => ({
 	featuresText: '',
 	descriptionText: '',
 	available: true,
-	images: [] as { url: string; display_url: string; alt: string }[],
+	images: [] as ImageDraft[],
+	source: null as { url: string } | null,
 });
 
 type Draft = ReturnType<typeof blank>;
@@ -93,6 +86,7 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 	const [saved, setSaved] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [errors, setErrors] = useState<Record<string, string>>({});
+	const [uploading, setUploading] = useState(false);
 	const titleTouched = useRef(false);
 
 	const set = (key: keyof Draft, value: string | boolean) => {
@@ -104,11 +98,6 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 			return next;
 		});
 	};
-	const setImg = (index: number, key: 'url' | 'display_url' | 'alt', value: string) =>
-		setD((prev) => {
-			const images = prev.images.map((img, i) => (i === index ? { ...img, [key]: value } : img));
-			return { ...prev, images };
-		});
 
 	useEffect(() => {
 		if (mode !== 'edit' || !vehicleId) return;
@@ -148,11 +137,12 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 					featuresText: v.features.join('\n'),
 					descriptionText: v.description.join('\n\n'),
 					available: v.available,
+					source: v.source ?? null,
 					images: [...v.images]
 						.sort((a, b) => a.order - b.order)
 						.map((img) => ({
 							url: img.url,
-							display_url: img.display_url ?? '',
+							display_url: img.display_url ?? img.url,
 							alt: img.alt ?? '',
 						})),
 				});
@@ -179,14 +169,16 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 		}
 		if (!d.cash_delivery_price.trim()) e.cash_delivery_price = 'El precio es obligatorio.';
 		else if (toNum(d.cash_delivery_price) == null) e.cash_delivery_price = 'Precio inválido.';
-		const badImg = d.images.findIndex((img) => !img.url.trim() || !/^https?:\/\//.test(img.url.trim()));
-		if (badImg >= 0) e.images = `La imagen ${badImg + 1} necesita una URL válida (https://…).`;
 		setErrors(e);
 		return Object.keys(e).length === 0;
 	}, [d]);
 
 	async function submit(e: React.FormEvent) {
 		e.preventDefault();
+		if (uploading) {
+			setError('Espera a que terminen de subir las imágenes antes de guardar.');
+			return;
+		}
 		if (!validate()) return;
 		setSaving(true);
 		setError(null);
@@ -221,14 +213,13 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 					.split(/\n{2,}/)
 					.map((s) => s.trim())
 					.filter(Boolean),
-				images: d.images
-					.map((img, i) => ({
-						url: img.url.trim(),
-						display_url: img.display_url.trim() || null,
-						alt: img.alt.trim() || null,
-						order: i,
-					}))
-					.filter((img) => img.url),
+				images: d.images.map((img, i) => ({
+					url: img.url.trim(),
+					display_url: img.url.trim(),
+					alt: img.alt.trim() || null,
+					order: i,
+				})),
+				source: d.source,
 				available: d.available,
 			};
 
@@ -448,65 +439,12 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 				</Section>
 
 				<Section title="Imágenes">
-					<div className="grid gap-4">
-						<p className="text-xs leading-relaxed text-muted">
-							La primera es la portada. Usa <code className="font-mono">display_url</code> si la foto pública está optimizada (p. ej. Brightcove) y <code className="font-mono">url</code> para la original.
-						</p>
-						{errors.images && (
-							<p className="flex items-center gap-2 rounded-xl bg-accent-tint px-4 py-3 text-sm font-medium text-accent">
-								<WarningCircle size={16} weight="regular" />
-								{errors.images}
-							</p>
-						)}
-						<div className="space-y-3">
-							{d.images.map((img, i) => (
-								<div key={i} className="rounded-xl border border-line bg-surface-2/60 p-4">
-									<div className="flex items-start gap-3">
-										<div className="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-surface">
-											{img.url ? (
-												<img src={img.url} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} onLoad={(e) => (e.currentTarget.style.display = '')} />
-											) : (
-												<span className="grid h-full place-items-center text-muted">
-													<ImageSquare size={20} weight="regular" />
-												</span>
-											)}
-											{i === 0 && <span className="absolute bottom-1 left-1 rounded bg-black/70 px-1.5 py-0.5 text-[0.625rem] font-bold text-white">PORTA</span>}
-										</div>
-										<div className="min-w-0 flex-1 space-y-2">
-											<input className="input" value={img.url} onChange={(e) => setImg(i, 'url', e.target.value)} placeholder="https://…/foto.jpg" aria-label={`URL de la imagen ${i + 1}`} />
-											<input className="input" value={img.display_url} onChange={(e) => setImg(i, 'display_url', e.target.value)} placeholder="https://… (URL optimizada, opcional)" aria-label={`URL optimizada de la imagen ${i + 1}`} />
-											<input className="input" value={img.alt} onChange={(e) => setImg(i, 'alt', e.target.value)} placeholder="Texto alternativo (accesibilidad)" aria-label={`Texto alternativo de la imagen ${i + 1}`} />
-										</div>
-									</div>
-									<div className="mt-3 flex items-center gap-2">
-										<button type="button" disabled={i === 0} onClick={() => setD((p) => {
-											const images = [...p.images];
-											[images[i - 1], images[i]] = [images[i], images[i - 1]];
-											return { ...p, images };
-										})} className="btn btn-ghost btn-sm disabled:opacity-40" aria-label="Subir imagen">
-											<ArrowUp size={14} weight="regular" />
-										</button>
-										<button type="button" disabled={i === d.images.length - 1} onClick={() => setD((p) => {
-											const images = [...p.images];
-											[images[i + 1], images[i]] = [images[i], images[i + 1]];
-											return { ...p, images };
-										})} className="btn btn-ghost btn-sm disabled:opacity-40" aria-label="Bajar imagen">
-											<ArrowDown size={14} weight="regular" />
-										</button>
-										<span className="ml-auto text-xs text-muted">Imagen {i + 1} de {d.images.length}</span>
-										<button type="button" onClick={() => setD((p) => ({ ...p, images: p.images.filter((_, j) => j !== i) }))} className="btn btn-ghost btn-sm text-accent" aria-label={`Quitar imagen ${i + 1}`}>
-											<Trash size={14} weight="regular" />
-												Quitar
-										</button>
-									</div>
-								</div>
-							))}
-						</div>
-						<button type="button" onClick={() => setD((p) => ({ ...p, images: [...p.images, { url: '', display_url: '', alt: '' }] }))} className="btn btn-outline btn-sm self-start">
-							<Plus size={14} weight="bold" />
-							Agregar imagen
-						</button>
-					</div>
+					<ImageUploader
+						images={d.images}
+						slug={d.slug}
+						onChange={(images) => setD((p) => ({ ...p, images }))}
+						onBusyChange={setUploading}
+					/>
 				</Section>
 			</div>
 
@@ -517,9 +455,15 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 					</p>
 					<div className="flex items-center gap-3">
 						<a href="/admin/vehiculos" className="btn btn-ghost">Cancelar</a>
-						<button type="submit" className="btn btn-primary" disabled={saving}>
+						<button type="submit" className="btn btn-primary" disabled={saving || uploading}>
 							<FloppyDisk size={16} weight="regular" />
-							{saving ? 'Guardando…' : mode === 'edit' ? 'Guardar cambios' : 'Crear vehículo'}
+							{uploading
+								? 'Subiendo imágenes…'
+								: saving
+									? 'Guardando…'
+									: mode === 'edit'
+										? 'Guardar cambios'
+										: 'Crear vehículo'}
 						</button>
 					</div>
 				</div>
