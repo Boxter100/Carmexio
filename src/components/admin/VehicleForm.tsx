@@ -267,7 +267,7 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 	}
 
 	return (
-		<form onSubmit={submit} noValidate>
+		<form onSubmit={submit} noValidate className="[&_.input]:min-h-11">
 			{error && (
 				<p className="mb-5 flex items-start gap-2 rounded-xl bg-accent-tint px-4 py-3 text-sm font-medium text-accent" role="alert">
 					<WarningCircle size={17} weight="regular" className="mt-0.5 shrink-0" />
@@ -448,14 +448,14 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 				</Section>
 			</div>
 
-			<div className="sticky bottom-4 z-10 mt-6">
+			<div className="sticky bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 mt-6">
 				<div className="flex flex-col gap-3 rounded-2xl border border-line bg-surface/95 p-4 shadow-[0_18px_40px_-20px_rgba(0,0,0,0.5)] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
 					<p className="hidden text-xs text-muted sm:block">
 						{mode === 'edit' ? 'Los cambios se publican de inmediato.' : 'Se creará una unidad nueva en el Garage.'}
 					</p>
-					<div className="flex items-center gap-3">
-						<a href="/admin/vehiculos" className="btn btn-ghost">Cancelar</a>
-						<button type="submit" className="btn btn-primary" disabled={saving || uploading}>
+					<div className="flex w-full flex-col gap-2.5 min-[400px]:flex-row min-[400px]:items-center sm:w-auto sm:gap-3">
+						<a href="/admin/vehiculos" className="btn btn-ghost w-full justify-center min-[400px]:w-auto">Cancelar</a>
+						<button type="submit" className="btn btn-primary min-h-11 w-full justify-center min-[400px]:w-auto min-[400px]:min-h-0" disabled={saving || uploading}>
 							<FloppyDisk size={16} weight="regular" />
 							{uploading
 								? 'Subiendo imágenes…'

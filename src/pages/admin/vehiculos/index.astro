@@ -16,7 +16,7 @@ const { user } = guard;
 >
 	<AdminShell user={user} pathname={Astro.url.pathname} title="Vehículos">
 		<Fragment slot="actions">
-			<a href="/admin/vehiculos/nuevo" class="btn btn-primary btn-sm">
+			<a href="/admin/vehiculos/nuevo" class="btn btn-primary btn-sm min-h-11 w-full justify-center sm:w-auto">
 				<Plus size={15} weight="bold" />
 				Nuevo vehículo
 			</a>

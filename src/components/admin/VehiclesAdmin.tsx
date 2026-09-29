@@ -28,7 +28,7 @@ function Switch({
 			aria-label={label}
 			disabled={disabled}
 			onClick={() => onChange(!checked)}
-			className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-50 ${
+			className={`relative h-6 w-11 shrink-0 rounded-full transition-colors duration-200 disabled:opacity-50 after:absolute after:-inset-x-2 after:-inset-y-3 after:content-[''] ${
 				checked ? 'bg-emerald-500' : 'bg-surface-2 ring-1 ring-line-strong'
 			}`}
 		>
@@ -43,13 +43,21 @@ function Switch({
 
 function SkeletonRow() {
 	return (
-		<div className="flex items-center gap-4 border-b border-line px-4 py-4 last:border-b-0">
-			<div className="skeleton h-14 w-20 shrink-0 rounded-lg" />
-			<div className="flex-1 space-y-2">
-				<div className="skeleton h-3.5 w-2/3 rounded" />
-				<div className="skeleton h-3 w-1/3 rounded" />
+		<div className="border-b border-line p-4 last:border-b-0">
+			<div className="flex gap-4">
+				<div className="skeleton h-20 w-28 shrink-0 rounded-lg" />
+				<div className="flex-1 space-y-2">
+					<div className="skeleton h-3.5 w-2/3 rounded" />
+					<div className="skeleton h-3 w-1/3 rounded" />
+					<div className="skeleton h-3.5 w-1/2 rounded" />
+				</div>
 			</div>
-			<div className="skeleton h-6 w-24 rounded" />
+			<div className="mt-3 flex items-center gap-2 border-t border-line pt-3">
+				<div className="skeleton h-6 w-11 rounded-full" />
+				<div className="skeleton h-3 w-14 rounded" />
+				<div className="skeleton ml-auto h-11 w-20 rounded-lg" />
+				<div className="skeleton h-11 w-24 rounded-lg" />
+			</div>
 		</div>
 	);
 }
@@ -136,49 +144,56 @@ export default function VehiclesAdmin() {
 	}
 
 	const mobileCard = (v: Vehicle) => (
-		<div key={v.id} className="flex gap-4 border-b border-line p-4 last:border-b-0">
-			<a href={`/garage/${v.slug}`} className="relative block h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-surface-2">
-				{rowImage(v) ? (
-					<img src={rowImage(v)!} alt="" loading="lazy" className="h-full w-full object-cover" />
-				) : null}
-				{v.available && (
-					<span className="absolute left-1.5 top-1.5 rounded bg-emerald-500/90 px-1.5 py-0.5 text-[0.625rem] font-bold text-white">
-						DISPONIBLE
-					</span>
-				)}
-			</a>
-			<div className="min-w-0 flex-1">
-				<div className="flex items-start justify-between gap-2">
-					<a href={`/admin/vehiculos/${v.id}`} className="font-display text-sm font-semibold leading-snug text-ink hover:text-accent">
+		<div key={v.id} className="border-b border-line p-4 last:border-b-0">
+			<div className="flex gap-4">
+				<a href={`/garage/${v.slug}`} className="relative block h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-surface-2">
+					{rowImage(v) ? (
+						<img src={rowImage(v)!} alt="" loading="lazy" className="h-full w-full object-cover" />
+					) : null}
+					{v.available && (
+						<span className="absolute left-1.5 top-1.5 rounded bg-emerald-500/90 px-1.5 py-0.5 text-[0.625rem] font-bold text-white">
+							DISPONIBLE
+						</span>
+					)}
+				</a>
+				<div className="min-w-0 flex-1">
+					<a href={`/admin/vehiculos/${v.id}`} className="-my-1 block py-1 font-display text-sm font-semibold leading-snug text-ink hover:text-accent">
 						{v.title}
 					</a>
+					<p className="mt-0.5 text-xs text-muted">
+						{v.year ?? '—'} · {v.branch ?? '—'}
+					</p>
+					<p className="mt-1.5 font-display text-sm font-semibold text-ink">
+						{formatMXN(v.cash_delivery_price)}
+					</p>
+					{v.advance_payment_price != null && (
+						<p className="mt-0.5 text-xs text-muted">Apartado {formatMXN(v.advance_payment_price)}</p>
+					)}
 				</div>
-				<p className="mt-0.5 text-xs text-muted">
-					{v.year ?? '—'} · {v.branch ?? '—'}
-				</p>
-				<p className="mt-1.5 font-display text-sm font-semibold text-ink">
-					{formatMXN(v.cash_delivery_price)}
-				</p>
-				<div className="mt-2 flex items-center gap-1">
-					<Switch
-						checked={v.available}
-						disabled={pending === v.id}
-						label={`Disponibilidad de ${v.title}`}
-						onChange={(next) => void toggleAvailable(v, next)}
-					/>
-					<a href={`/admin/vehiculos/${v.id}`} className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-line-strong px-2.5 py-1.5 text-xs font-medium text-soft hover:text-ink">
-						<PencilSimple size={13} weight="regular" />
-						Editar
-					</a>
-					<button
-						type="button"
-						onClick={() => setDeleting(v)}
-						className="inline-flex items-center gap-1.5 rounded-lg border border-line-strong px-2.5 py-1.5 text-xs font-medium text-soft hover:border-accent hover:text-accent"
-					>
-						<Trash size={13} weight="regular" />
-						Eliminar
-					</button>
-				</div>
+			</div>
+			<div className="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+				<Switch
+					checked={v.available}
+					disabled={pending === v.id}
+					label={`Disponibilidad de ${v.title}`}
+					onChange={(next) => void toggleAvailable(v, next)}
+				/>
+				<span className="text-xs font-medium text-soft">{v.available ? 'Visible' : 'Oculto'}</span>
+				<a
+					href={`/admin/vehiculos/${v.id}`}
+					className="ml-auto inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-line-strong px-3 text-sm font-medium text-soft transition-colors hover:text-ink"
+				>
+					<PencilSimple size={15} weight="regular" />
+					Editar
+				</a>
+				<button
+					type="button"
+					onClick={() => setDeleting(v)}
+					className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-lg border border-line-strong px-3 text-sm font-medium text-soft transition-colors hover:border-accent hover:text-accent"
+				>
+					<Trash size={15} weight="regular" />
+					Eliminar
+				</button>
 			</div>
 		</div>
 	);
