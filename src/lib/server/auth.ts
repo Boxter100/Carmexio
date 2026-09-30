@@ -6,7 +6,7 @@ import {
 	localSignIn,
 	localSignOut,
 } from '../db/local';
-import { createServerSupabase } from './supabase';
+import { createServerSupabase, parseCookieHeader } from './supabase';
 import type { ServerContext } from './context';
 import type { AdminUser } from '../types';
 import { isAdminRole } from '../roles';
@@ -27,7 +27,25 @@ function clearLocalToken(cookies: AstroCookies) {
 	cookies.delete(SESSION_COOKIE, { path: '/' });
 }
 
+/**
+ * @supabase/ssr parte la sesión en cookies `sb-<ref>-auth-token`, `...-auth-token.0`,
+ * `...-auth-token.1`, etc. No se puede hardcodear el ref porque cambia por proyecto,
+ * así que se detecta por prefijo.
+ */
+const SUPABASE_SESSION_COOKIE = /^sb-[a-z0-9]+-auth-token(\.|$)/;
+
+/**
+ * Sin cookie de sesión no puede haber usuario, y `sb.auth.getUser()` es una llamada
+ * de red a Supabase Auth. Esta guarda la evita en el ~99% del tráfico (visitas
+ * anónimas), que es el caso habitual ahora que el layout pide la sesión en servidor.
+ */
+function hasSessionCookie(ctx: ServerContext): boolean {
+	if (ctx.cookies.get(SESSION_COOKIE)?.value) return true;
+	return parseCookieHeader(ctx.request).some(({ name }) => SUPABASE_SESSION_COOKIE.test(name));
+}
+
 export async function currentSession(ctx: ServerContext): Promise<AdminUser | null> {
+	if (!hasSessionCookie(ctx)) return null;
 	if (isSupabaseConfigured()) {
 		const sb = createServerSupabase(ctx.request, ctx.cookies);
 		const {

@@ -36,6 +36,8 @@ export interface ImageDraft {
 	url: string;
 	display_url: string;
 	alt: string;
+	width?: number | null;
+	height?: number | null;
 }
 
 interface PendingUpload {
@@ -191,7 +193,14 @@ export default function ImageUploader({ images, onChange, slug, onBusyChange, er
 				form.append('folder', slug);
 				try {
 					const res = await fetch('/api/uploads', { method: 'POST', body: form });
-					const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null;
+					const data = (await res.json().catch(() => null)) as {
+						url?: string;
+						display_url?: string;
+						width?: number;
+						height?: number;
+						warning?: string | null;
+						error?: string;
+					} | null;
 					if (res.status === 401) {
 						window.location.assign('/admin/login');
 						return;
@@ -202,7 +211,14 @@ export default function ImageUploader({ images, onChange, slug, onBusyChange, er
 						continue;
 					}
 					if (!res.ok || !data?.url) throw new Error(data?.error ?? 'No se pudo subir el archivo.');
-					collected.push({ url: data.url, display_url: data.url, alt: '' });
+					if (data.warning) setNotice(data.warning);
+					collected.push({
+						url: data.url,
+						display_url: data.display_url ?? data.url,
+						alt: '',
+						width: data.width ?? null,
+						height: data.height ?? null,
+					});
 				} catch (err) {
 					setRejected([err instanceof Error ? err.message : `Falló la subida de ${file.name}.`]);
 				} finally {

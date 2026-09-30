@@ -1,14 +1,17 @@
 ---
 import { NAV_LINKS } from '../lib/site';
+import type { AdminUser } from '../lib/types';
 import ThemeToggle from './ThemeToggle.tsx';
 import AccountButton from './AccountButton.tsx';
 import MobileNav from './MobileNav.tsx';
 
 interface Props {
 	pathname: string;
+	/** Sesión resuelta en el servidor por Layout.astro. */
+	user?: AdminUser | null;
 }
 
-const { pathname } = Astro.props;
+const { pathname, user = null } = Astro.props;
 
 function isActive(href: string): boolean {
 	if (href === '/') return pathname === '/';
@@ -59,10 +62,17 @@ function isActive(href: string): boolean {
 		</nav>
 
 		<div class="flex items-center gap-1.5">
-			<ThemeToggle client:load />
-			<AccountButton client:load />
+			{/*
+				ThemeToggle y AccountButton se renderizan igual en el servidor que en el
+				cliente, así que client:idle no cambia el HTML ni el CLS: solo retrasa la
+				hidratación. AccountButton ya no lleva ninguna directiva porque no tiene
+				interactividad (es un <a>), y MobileNav solo se hidrata bajo xl, que es
+				justo donde su contenedor deja de estar oculto.
+			*/}
+			<ThemeToggle client:idle />
+			<AccountButton user={user} />
 			<div class="xl:hidden">
-				<MobileNav client:load pathname={pathname} />
+				<MobileNav client:media="(max-width: 1279.98px)" pathname={pathname} />
 			</div>
 		</div>
 	</div>

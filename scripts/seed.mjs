@@ -64,6 +64,8 @@ function normalize(raw) {
             display_url: i.display_url ?? i.url,
             alt: i.alt ?? null,
             order: typeof i.order === 'number' ? i.order : 0,
+            width: typeof i.width === 'number' ? i.width : null,
+            height: typeof i.height === 'number' ? i.height : null,
           }))
       : [],
     source: raw.source ?? null,

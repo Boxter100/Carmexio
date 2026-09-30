@@ -1,39 +1,16 @@
-import { useEffect, useState } from 'react';
 import { CaretRight, UserCircle } from '@phosphor-icons/react';
 import type { AdminUser } from '../lib/types';
 
-type State = 'loading' | 'anonymous' | 'admin';
-
-export default function AccountButton() {
-	const [state, setState] = useState<State>('loading');
-	const [user, setUser] = useState<AdminUser | null>(null);
-
-	useEffect(() => {
-		let active = true;
-		fetch('/api/auth/me')
-			.then((res) => (res.ok ? res.json() : null))
-			.then((data: { user: AdminUser } | null) => {
-				if (!active) return;
-				if (data?.user) {
-					setUser(data.user);
-					setState('admin');
-				} else {
-					setState('anonymous');
-				}
-			})
-			.catch(() => active && setState('anonymous'));
-		return () => {
-			active = false;
-		};
-	}, []);
-
-	if (state === 'loading') {
-		return (
-			<span className="h-9 w-9 animate-pulse rounded-lg bg-surface-2" aria-hidden="true" />
-		);
-	}
-
-	if (state === 'admin' && user) {
+/**
+ * Sin estado ni efectos: la sesión llega resuelta desde Layout.astro. Antes hacía
+ * un `fetch('/api/auth/me')` en `client:load` en todas las páginas, lo que añadía
+ * ~870 ms a la cadena crítica y un skeleton pulsante en el header.
+ *
+ * LogoutButton.tsx navega con `window.location.href`, así que el logout también
+ * pasa por un render completo y el botón se actualiza sin necesidad de hidratar.
+ */
+export default function AccountButton({ user }: { user: AdminUser | null }) {
+	if (user) {
 		return (
 			<a
 				href="/admin"

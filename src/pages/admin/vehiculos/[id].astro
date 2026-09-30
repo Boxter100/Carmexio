@@ -15,6 +15,7 @@ const { user } = guard;
 <Layout
 	title="Editar vehículo — Panel"
 	description="Editar un vehículo de Carmexio."
+	session={user}
 >
 	<AdminShell user={user} pathname={Astro.url.pathname} title="Editar vehículo" backHref="/admin/vehiculos">
 		<VehicleForm mode="edit" vehicleId={id} client:load />

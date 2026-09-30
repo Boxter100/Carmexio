@@ -39,6 +39,8 @@ export const vehicleInputSchema = z.object({
 				display_url: z.string().trim().max(500).nullish(),
 				alt: z.string().trim().max(300).nullish(),
 				order: z.number().int().min(0).nullish(),
+				width: z.number().int().min(1).max(20000).nullish(),
+				height: z.number().int().min(1).max(20000).nullish(),
 			}),
 		)
 		.max(40)
@@ -85,6 +87,8 @@ export function toVehicleInput(data: VehicleInputPayload): VehicleInput {
 			display_url: img.display_url ?? null,
 			alt: img.alt ?? null,
 			order: i,
+			width: img.width ?? null,
+			height: img.height ?? null,
 		})),
 		source: data.source,
 		available: data.available,

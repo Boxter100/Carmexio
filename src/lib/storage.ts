@@ -42,8 +42,13 @@ export function storagePathFromUrl(url: string): string | null {
 	return isValidObjectPath(path) ? path : null;
 }
 
+/**
+ * Admite el guion del sufijo de variante (`01-640.webp`, ver lib/images.ts).
+ * Sin ese caracter, storagePathFromUrl devolvería null para los derivados y los
+ * DELETE empezarían a fallar al borrar imágenes.
+ */
 export function isValidObjectPath(path: string): boolean {
-	return /^[a-z0-9-]+\/[a-z0-9]+\.webp$/.test(path);
+	return /^[a-z0-9-]+\/[a-z0-9-]+\.webp$/.test(path);
 }
 
 export function isWebpName(name: string): boolean {

@@ -57,6 +57,8 @@ export function rawToVehicle(raw: RawVehicle, now = new Date().toISOString()): V
 					display_url: img.display_url ?? img.url,
 					alt: img.alt ?? null,
 					order: img.order ?? 0,
+					width: img.width ?? null,
+					height: img.height ?? null,
 				}))
 			: [],
 		source: raw.source ?? null,

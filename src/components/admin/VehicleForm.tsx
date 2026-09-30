@@ -144,6 +144,8 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 							url: img.url,
 							display_url: img.display_url ?? img.url,
 							alt: img.alt ?? '',
+							width: img.width ?? null,
+							height: img.height ?? null,
 						})),
 				});
 			} catch (err) {
@@ -215,9 +217,13 @@ export default function VehicleForm({ mode = 'create', vehicleId }: { mode: 'cre
 					.filter(Boolean),
 				images: d.images.map((img, i) => ({
 					url: img.url.trim(),
-					display_url: img.url.trim(),
+					// Antes esto era `display_url: img.url.trim()`, que pisaba el derivado
+					// con el original y deshacía el srcset en cada guardado.
+					display_url: img.display_url?.trim() || img.url.trim(),
 					alt: img.alt.trim() || null,
 					order: i,
+					width: img.width ?? null,
+					height: img.height ?? null,
 				})),
 				source: d.source,
 				available: d.available,

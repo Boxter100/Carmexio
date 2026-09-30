@@ -4,15 +4,27 @@ import '../styles/components.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { SITE } from '../lib/site';
+import { supabaseUrl } from '../lib/env';
+import { currentSession } from '../lib/server/auth';
+import type { AdminUser } from '../lib/types';
 import manropeLatin from '@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url';
 import soraLatin from '@fontsource-variable/sora/files/sora-latin-wght-normal.woff2?url';
 
 interface Props {
 	title?: string;
 	description?: string;
+	/** Sesión ya resuelta: la pasan las páginas /admin para no repetir la consulta. */
+	session?: AdminUser | null;
 }
 
-const { title, description } = Astro.props;
+const { title, description, session } = Astro.props;
+
+// Si la página ya trajo la sesión (páginas /admin), se reutiliza. En el resto se
+// resuelve aquí, en paralelo al resto del render, en vez de desde el navegador
+// con un fetch a /api/auth/me que alargaba la cadena crítica ~870 ms.
+const user = 'session' in Astro.props ? (session ?? null) : await currentSession(Astro);
+
+const supabase = supabaseUrl();
 
 const fullTitle = title ? `${title} · ${SITE.name}` : `${SITE.name} · ${SITE.tagline}`;
 const metaDescription = description ?? 'Vehiculos seleccionados con precio claro, financiamiento propio y servicio anual en Carmexio.';
@@ -25,6 +37,14 @@ const metaDescription = description ?? 'Vehiculos seleccionados con precio claro
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="preload" href={manropeLatin} as="font" type="font/woff2" crossorigin />
 		<link rel="preload" href={soraLatin} as="font" type="font/woff2" crossorigin />
+		{
+			supabase && (
+				<>
+					<link rel="preconnect" href={supabase} crossorigin />
+					<link rel="dns-prefetch" href={supabase} />
+				</>
+			)
+		}
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />

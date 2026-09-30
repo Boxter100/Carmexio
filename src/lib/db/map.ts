@@ -53,6 +53,8 @@ function asImages(value: unknown): VehicleImage[] {
 				display_url: img.display_url ? String(img.display_url) : null,
 				alt: img.alt ? String(img.alt) : null,
 				order: typeof img.order === 'number' ? img.order : 0,
+				width: typeof img.width === 'number' && img.width > 0 ? img.width : null,
+				height: typeof img.height === 'number' && img.height > 0 ? img.height : null,
 			}))
 			.filter((img) => img.url.length > 0)
 			.sort((a, b) => a.order - b.order);

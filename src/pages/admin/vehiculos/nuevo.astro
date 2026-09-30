@@ -12,6 +12,7 @@ const { user } = guard;
 <Layout
 	title="Nuevo vehículo — Panel"
 	description="Crear un vehículo en Carmexio."
+	session={user}
 >
 	<AdminShell user={user} pathname={Astro.url.pathname} title="Nuevo vehículo" backHref="/admin/vehiculos">
 		<VehicleForm mode="create" client:load />

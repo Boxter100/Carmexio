@@ -1,8 +1,16 @@
 export interface VehicleImage {
 	url: string;
+	/** Derivado de `url` de DISPLAY_WIDTH. Es lo que se pinta cuando no hay srcset. */
 	display_url?: string | null;
 	alt?: string | null;
 	order: number;
+	/**
+	 * Ancho/alto intrínsecos del original. Viven en el jsonb de `images`, así que
+	 * añadirlos no requiere migración. `width` es lo que hace posible un srcset
+	 * fiable: sin él no se sabe qué derivados existen de verdad.
+	 */
+	width?: number | null;
+	height?: number | null;
 }
 
 export interface Vehicle {

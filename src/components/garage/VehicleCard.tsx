@@ -1,17 +1,27 @@
 import { Calendar, Gauge, Crosshair, GearSix, ArrowUpRight } from '@phosphor-icons/react';
 import type { Vehicle } from '../../lib/types';
 import { displayPrice, formatMiles } from '../../lib/format';
+import { CARD_SIZES, FEATURED_SIZES, imageSrcSet } from '../../lib/images';
 
 function firstImages(v: Vehicle) {
 	const sorted = [...v.images].sort((a, b) => a.order - b.order);
 	return { cover: sorted[0] ?? null, hover: sorted[1] ?? null };
 }
 
-export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+export default function VehicleCard({
+	vehicle,
+	sizes = CARD_SIZES,
+}: {
+	vehicle: Vehicle;
+	/** `sizes` del grid que contiene la card: cambia entre garage (3 col) y portada (4 col). */
+	sizes?: string;
+}) {
 	const { cover, hover } = firstImages(vehicle);
 	const price = displayPrice(vehicle);
 	const href = `/garage/${vehicle.slug}`;
 	const alt = cover?.alt || `${vehicle.brand} ${vehicle.model ?? ''} ${vehicle.year ?? ''}`.trim();
+	const hoverUrl = hover?.display_url ?? hover?.url;
+	const coverSrcSet = imageSrcSet(cover);
 
 	return (
 		<article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface transition-[border-color,box-shadow,transform] duration-300 ease-out hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)]">
@@ -20,6 +30,10 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 					{cover ? (
 						<img
 							src={cover.display_url ?? cover.url}
+							srcSet={coverSrcSet}
+							sizes={coverSrcSet ? sizes : undefined}
+							width={cover.width ?? undefined}
+							height={cover.height ?? undefined}
 							alt={alt}
 							loading="lazy"
 							decoding="async"
@@ -30,13 +44,17 @@ export default function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
 							<GearSix size={40} weight="thin" />
 						</div>
 					)}
-					{hover && (
-						<img
-							src={hover.display_url ?? hover.url}
-							alt=""
-							loading="lazy"
-							decoding="async"
-							className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+					{/*
+						La segunda foto va como background-image en un nodo display:none, no
+						como <img>: el navegador no descarga los fondos de elementos que no se
+						renderizan, así que solo se pide al pasar el ratón. Un <img> con
+						opacity-0 se descargaba igual — 182 KB por card en la portada.
+					*/}
+					{hoverUrl && (
+						<span
+							aria-hidden="true"
+							className="absolute inset-0 hidden bg-cover bg-center group-hover:block"
+							style={{ backgroundImage: `url("${hoverUrl}")` }}
 						/>
 					)}
 				</a>

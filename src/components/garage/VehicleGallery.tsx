@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CaretLeft, CaretRight, ArrowsOutSimple } from '@phosphor-icons/react';
 import type { VehicleImage } from '../../lib/types';
+import { imageSrcSet } from '../../lib/images';
+
+/** El slide principal ocupa todo el ancho del wrap (max 80rem menos el padding). */
+const SLIDE_SIZES = '(min-width: 1280px) 1200px, 100vw';
+/** Las miniaturas van en 4/5/6 columnas, así que nunca pasan de ~200 px. */
+const THUMB_SIZES = '(min-width: 1024px) 200px, (min-width: 640px) 150px, 33vw';
 
 export default function VehicleGallery({ images }: { images: VehicleImage[] }) {
 	const sorted = useMemo(() => [...images].sort((a, b) => a.order - b.order), [images]);
@@ -9,6 +15,7 @@ export default function VehicleGallery({ images }: { images: VehicleImage[] }) {
 
 	const current = sorted[Math.min(index, Math.max(0, sorted.length - 1))];
 	const currentIndex = Math.max(0, sorted.indexOf(current));
+	const currentSrcSet = imageSrcSet(current);
 
 	const prev = useCallback(() => setIndex((i) => (i - 1 + sorted.length) % sorted.length), [sorted.length]);
 	const next = useCallback(() => setIndex((i) => (i + 1) % sorted.length), [sorted.length]);
@@ -43,7 +50,16 @@ export default function VehicleGallery({ images }: { images: VehicleImage[] }) {
 				<img
 					key={current.url}
 					src={current.display_url ?? current.url}
+					srcSet={currentSrcSet}
+					sizes={currentSrcSet ? SLIDE_SIZES : undefined}
+					width={current.width ?? undefined}
+					height={current.height ?? undefined}
 					alt={current.alt || 'Imagen del vehículo'}
+					// Es el LCP de /garage/[slug]: la primera imagen va con la máxima
+					// prioridad y sin diferir. Las siguientes, solo al cambiar de slide.
+					loading={currentIndex === 0 ? 'eager' : 'lazy'}
+					fetchPriority={currentIndex === 0 ? 'high' : 'auto'}
+					decoding={currentIndex === 0 ? 'sync' : 'async'}
 					className="aspect-[4/3] w-full object-cover"
 				/>
 				<button
@@ -101,7 +117,11 @@ export default function VehicleGallery({ images }: { images: VehicleImage[] }) {
 						<ArrowsOutSimple size={18} weight="regular" className="rotate-45" />
 					</button>
 					<img
-						src={current.url || current.display_url || current.url}
+						src={current.url}
+						srcSet={currentSrcSet}
+						sizes={currentSrcSet ? '100vw' : undefined}
+						width={current.width ?? undefined}
+						height={current.height ?? undefined}
 						alt={current.alt || 'Imagen del vehículo'}
 						className="max-h-[85dvh] max-w-full rounded-xl object-contain shadow-2xl"
 						onClick={(e) => e.stopPropagation()}
@@ -125,8 +145,13 @@ export default function VehicleGallery({ images }: { images: VehicleImage[] }) {
 						>
 							<img
 								src={img.display_url ?? img.url}
+								srcSet={imageSrcSet(img)}
+								sizes={imageSrcSet(img) ? THUMB_SIZES : undefined}
+								width={img.width ?? undefined}
+								height={img.height ?? undefined}
 								alt=""
 								loading="lazy"
+								decoding="async"
 								className="h-full w-full object-cover"
 							/>
 						</button>

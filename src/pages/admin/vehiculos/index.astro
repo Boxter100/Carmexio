@@ -13,6 +13,7 @@ const { user } = guard;
 <Layout
 	title="Vehículos — Panel"
 	description="Administración de vehículos de Carmexio."
+	session={user}
 >
 	<AdminShell user={user} pathname={Astro.url.pathname} title="Vehículos">
 		<Fragment slot="actions">
