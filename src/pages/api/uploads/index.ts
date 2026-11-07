@@ -28,8 +28,8 @@ function publicImageUrl(path: string): string {
 }
 
 /** Un archivo por petición: severalos together superaría el límite de 4.5 MB de Vercel. */
-export const POST: APIRoute = async ({ request, cookies }) => {
-	const ctx: ServerContext = { request, cookies };
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
+	const ctx: ServerContext = { request, cookies, locals };
 	try {
 		await requireAdmin(ctx);
 		if (!isSupabaseConfigured()) {
@@ -122,8 +122,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 	}
 };
 
-export const DELETE: APIRoute = async ({ request, cookies, url }) => {
-	const ctx: ServerContext = { request, cookies };
+export const DELETE: APIRoute = async ({ request, cookies, url, locals }) => {
+	const ctx: ServerContext = { request, cookies, locals };
 	try {
 		await requireAdmin(ctx);
 		const path = url.searchParams.get('path');

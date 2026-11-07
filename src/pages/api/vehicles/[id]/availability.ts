@@ -10,8 +10,8 @@ function json(data: unknown, status = 200) {
 	});
 }
 
-export const PATCH: APIRoute = async ({ request, cookies, params }) => {
-	const ctx: ServerContext = { request, cookies };
+export const PATCH: APIRoute = async ({ request, cookies, params, locals }) => {
+	const ctx: ServerContext = { request, cookies, locals };
 	try {
 		await requireAdmin(ctx);
 		const body = (await request.json()) as { available?: unknown };

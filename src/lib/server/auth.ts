@@ -1,4 +1,5 @@
 import type { AstroCookies } from 'astro';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { isSupabaseConfigured } from '../env';
 import {
 	SESSION_COOKIE,
@@ -36,41 +37,57 @@ const SUPABASE_SESSION_COOKIE = /^sb-[a-z0-9]+-auth-token(\.|$)/;
 
 /**
  * Sin cookie de sesión no puede haber usuario, y `sb.auth.getUser()` es una llamada
- * de red a Supabase Auth. Esta guarda la evita en el ~99% del tráfico (visitas
- * anónimas), que es el caso habitual ahora que el layout pide la sesión en servidor.
+ * de red a Supabase Auth. Esta guarda la evita en el tráfico anónimo.
  */
-function hasSessionCookie(ctx: ServerContext): boolean {
-	if (ctx.cookies.get(SESSION_COOKIE)?.value) return true;
-	return parseCookieHeader(ctx.request).some(({ name }) => SUPABASE_SESSION_COOKIE.test(name));
+function hasSupabaseSessionCookie(request: Request): boolean {
+	return parseCookieHeader(request).some(({ name }) => SUPABASE_SESSION_COOKIE.test(name));
+}
+
+/** Resuelve el usuario de una sesión Supabase (incluye rol de `app_metadata`/`profiles`). */
+export async function resolveSupabaseSession(sb: SupabaseClient): Promise<AdminUser | null> {
+	const {
+		data: { user },
+	} = await sb.auth.getUser();
+	if (!user) return null;
+
+	let role = (user.app_metadata?.role as string) ?? 'user';
+	// Si el metadata no indica rol admin, utiliza el propio perfil
+	// (RLS permite a cada usuario leer su propia fila).
+	if (!isAdminRole(role)) {
+		const { data: profile } = await sb
+			.from('profiles')
+			.select('role')
+			.eq('id', user.id)
+			.maybeSingle();
+		if (profile?.role) role = String(profile.role);
+	}
+
+	return {
+		id: user.id,
+		email: user.email ?? '',
+		name: (user.user_metadata?.name as string) ?? null,
+		role,
+	};
+}
+
+/**
+ * Resuelve la sesión desde cero. Solo la usa el middleware (y como fallback
+ * `currentSession` cuando `locals.user` no está definido).
+ */
+export async function resolveSession(ctx: ServerContext): Promise<AdminUser | null> {
+	if (isSupabaseConfigured()) {
+		if (!hasSupabaseSessionCookie(ctx.request)) return null;
+		const sb = createServerSupabase(ctx.request, ctx.cookies);
+		return resolveSupabaseSession(sb);
+	}
+	return localSession(localToken(ctx.cookies));
 }
 
 export async function currentSession(ctx: ServerContext): Promise<AdminUser | null> {
-	if (!hasSessionCookie(ctx)) return null;
-	if (isSupabaseConfigured()) {
-		const sb = createServerSupabase(ctx.request, ctx.cookies);
-		const {
-			data: { user },
-		} = await sb.auth.getUser();
-		if (!user) return null;
-		let role = (user.app_metadata?.role as string) ?? 'user';
-		// Si el metadata no indica rol admin, utiliza el propio perfil
-		// (RLS permite a cada usuario leer su propia fila).
-		if (!isAdminRole(role)) {
-			const { data: profile } = await sb
-				.from('profiles')
-				.select('role')
-				.eq('id', user.id)
-				.maybeSingle();
-			if (profile?.role) role = String(profile.role);
-		}
-		return {
-			id: user.id,
-			email: user.email ?? '',
-			name: (user.user_metadata?.name as string) ?? null,
-			role,
-		};
-	}
-	return localSession(localToken(ctx.cookies));
+	// El middleware ya la resolvió: puede ser null (anónimo) y no hay que repetir
+	// la llamada a Supabase Auth ni la consulta de `profiles`.
+	if ('user' in ctx.locals) return ctx.locals.user ?? null;
+	return resolveSession(ctx);
 }
 
 export async function loginAdmin(

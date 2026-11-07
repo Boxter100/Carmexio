@@ -15,8 +15,8 @@ function notFound() {
 	return json({ error: 'Vehículo no encontrado.' }, 404);
 }
 
-export const GET: APIRoute = async ({ request, cookies, params }) => {
-	const ctx: ServerContext = { request, cookies };
+export const GET: APIRoute = async ({ request, cookies, params, locals }) => {
+	const ctx: ServerContext = { request, cookies, locals };
 	try {
 		const vehicle = await getVehicleById(params.id!);
 		if (!vehicle) return notFound();
@@ -27,8 +27,8 @@ export const GET: APIRoute = async ({ request, cookies, params }) => {
 	}
 };
 
-export const PUT: APIRoute = async ({ request, cookies, params }) => {
-	const ctx: ServerContext = { request, cookies };
+export const PUT: APIRoute = async ({ request, cookies, params, locals }) => {
+	const ctx: ServerContext = { request, cookies, locals };
 	try {
 		await requireAdmin(ctx);
 		const parsed = vehicleInputSchema.safeParse(await request.json());
@@ -47,8 +47,8 @@ export const PUT: APIRoute = async ({ request, cookies, params }) => {
 	}
 };
 
-export const DELETE: APIRoute = async ({ request, cookies, params }) => {
-	const ctx: ServerContext = { request, cookies };
+export const DELETE: APIRoute = async ({ request, cookies, params, locals }) => {
+	const ctx: ServerContext = { request, cookies, locals };
 	try {
 		await requireAdmin(ctx);
 		const ok = await removeVehicle(ctx, params.id!);

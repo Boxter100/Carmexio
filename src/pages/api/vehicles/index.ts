@@ -57,8 +57,8 @@ export const GET: APIRoute = async ({ request, url }) => {
 	}
 };
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-	const ctx: ServerContext = { request, cookies };
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
+	const ctx: ServerContext = { request, cookies, locals };
 	try {
 		await requireAdmin(ctx);
 		const parsed = vehicleInputSchema.safeParse(await request.json());

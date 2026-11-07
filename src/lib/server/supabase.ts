@@ -26,7 +26,15 @@ export function createServerSupabase(request: Request, cookies: AstroCookies) {
 			},
 			setAll(cookiesToSet) {
 				for (const { name, value, options } of cookiesToSet) {
-					cookies.set(name, value, options);
+					try {
+						cookies.set(name, value, options);
+					} catch (err) {
+						// El middleware refresca la sesión antes del render, así que esto
+						// solo puede pasar en una escritura tardía (p. ej. un refresh en
+						// segundo plano). No hay forma de alterar la respuesta ya enviada;
+						// se ignora en vez de tumbar la petición.
+						if ((err as Error)?.name !== 'ResponseSentError') throw err;
+					}
 				}
 			},
 		},

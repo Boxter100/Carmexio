@@ -3,8 +3,8 @@ import { loginAdmin } from '../../../lib/server/auth';
 import type { ServerContext } from '../../../lib/server/context';
 import { loginSchema } from '../../../lib/validation';
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-	const ctx: ServerContext = { request, cookies };
+export const POST: APIRoute = async ({ request, cookies, locals }) => {
+	const ctx: ServerContext = { request, cookies, locals };
 	const json = (data: unknown, status: number) =>
 		new Response(JSON.stringify(data), {
 			status,
